@@ -1,4 +1,4 @@
-package com.yupi.mcp.mcpserver.dto;
+package com.search.mcp.mcpserver.dto;
 
 import lombok.Data;
 

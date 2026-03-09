@@ -1,4 +1,4 @@
-package com.yupi.mcp.mcpserver;
+package com.search.mcp.mcpserver;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

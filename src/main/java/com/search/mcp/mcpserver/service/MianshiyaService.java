@@ -1,12 +1,12 @@
-package com.yupi.mcp.mcpserver.service;
+package com.search.mcp.mcpserver.service;
 
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONUtil;
-import com.yupi.mcp.mcpserver.dto.BaseResponse;
-import com.yupi.mcp.mcpserver.dto.Page;
-import com.yupi.mcp.mcpserver.dto.QuestionQueryRequest;
-import com.yupi.mcp.mcpserver.dto.QuestionVO;
+import com.search.mcp.mcpserver.dto.BaseResponse;
+import com.search.mcp.mcpserver.dto.Page;
+import com.search.mcp.mcpserver.dto.QuestionQueryRequest;
+import com.search.mcp.mcpserver.dto.QuestionVO;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
@@ -25,7 +25,7 @@ import java.util.StringJoiner;
 public class MianshiyaService {
 
     @Value("${endpoint.mianshiya.searchQuestion}")
-    private String baseUrl;
+    private String searchUrl;
 
     @Value("${endpoint.mianshiya.resultLink}")
     private String resultLink;
@@ -45,7 +45,7 @@ public class MianshiyaService {
         // 调用编程导航
         String result = null;
         try {
-            HttpResponse response = HttpRequest.post(baseUrl).body(JSONUtil.toJsonStr(request)).timeout(2000).execute();
+            HttpResponse response = HttpRequest.post(searchUrl).body(JSONUtil.toJsonStr(request)).timeout(2000).execute();
             result = response.body();
             log.info("call mianshiya , result = {}", result);
             if (response.getStatus() != 200) {
