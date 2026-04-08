@@ -1,55 +1,67 @@
-# 面试鸭 MCP Server
+# mcp-OmniSearch-server
 
 ## 简介
 
-[面试鸭](https://mianshiya.com/)
-的题目搜索API现已兼容MCP协议，是国内首家兼容MCP协议的面试刷题网站。关于MCP协议，详见MCP官方[文档](https://modelcontextprotocol.io/)。
+`mcp-OmniSearch-server` 是一个基于 MCP (Model Context Protocol) 协议的综合搜索服务器。它集成了多个数据源，旨在为智能体助手（如 `Claude`、`Cursor`、`Cherry Studio` 等）提供一站式的面试题目和学习资料搜索能力。
 
-依赖`MCP Java SDK`开发，任意支持MCP协议的智能体助手（如`Claude`、`Cursor`以及`千帆AppBuilder`等）都可以快速接入。
+### 支持的功能
 
-以下会给更出详细的适配说明。
+- **面试鸭题目搜索**：快速检索 [面试鸭](https://mianshiya.com/) 上的面试题目及链接。
+- **JavaGuide 文章搜索**：从知名的 [JavaGuide](https://javaguide.cn/) 网站搜索相关的技术文章。
+- **本地资料搜索**：支持搜索本地指定目录（如 `D:\study\面试`）下的学习资料。
+
+关于 MCP 协议的详细信息，请参阅 [官方文档](https://modelcontextprotocol.io/)。
+
+本项目依赖 `Spring AI` 和 `MCP Java SDK` 开发。
 
 ## 工具列表
 
-#### 题目搜索 `questionSearch`
+#### 1. 题目搜索 `questionSearch` (来自面试鸭)
+- **功能**: 将面试题目检索为面试鸭里的题目链接。
+- **输入**: `searchText` (搜索词)
+- **输出**: `[题目](链接)` 列表。
 
-- 将面试题目检索为面试鸭里的题目链接
-- 输入: `题目`
-- 输出: `[题目](链接)`
+#### 2. 文章搜索 `searchArticles` (来自 JavaGuide)
+- **功能**: 从 JavaGuide 网站搜索相关的技术文章。
+- **输入**: `searchText` (搜索词)
+- **输出**: `[文章标题](链接)` 列表。
+
+#### 3. 本地文件搜索 `searchFiles` (本地目录)
+- **功能**: 从本地目录 `D:\study\面试` 中搜索匹配的文件。
+- **输入**: `searchText` (搜索词)
+- **输出**: `[文件名](file:///路径)` 列表。
 
 ## 快速开始
 
-使用面试鸭MCP Server主要通过`Java SDK` 的形式
+### 环境准备
 
-### Java 接入
+- Java 17 或更高版本
+- Maven
 
-> 前提需要Java 17 运行时环境
+### 安装与构建
 
-#### 安装
+1. **克隆仓库**
 
 ``` bash
-git clone https://github.com/yuyuanweb/mcp-mianshiya-server
+git clone https://github.com/blue594/mcp-OmniSearch-server
 ```
 
-#### 构建
+2. **构建项目**
 
 ``` bash
-cd mcp-mianshiya-server
+cd mcp-OmniSearch-server
 mvn clean package
 ```
 
-#### 使用
+### 客户端接入 (以 Cherry Studio 为例)
 
-1) 打开`Cherry Studio`的`设置`，点击`MCP 服务器`。
-   ![cherry1.png](img/cherry1.png)
-
-
-2) 点击`编辑 JSON`,将以下配置添加到配置文件中。
+1. 打开 `Cherry Studio` 的 `设置`，点击 `MCP 服务器`。
+2. 点击 `编辑 JSON`，将以下配置添加到配置文件中（请根据实际路径替换 `jar` 包位置）：
 
 ``` json
 {
   "mcpServers": {
-    "mianshiyaServer": {
+    "omniSearchServer": {
       "command": "java",
       "args": [
         "-Dspring.ai.mcp.server.stdio=true",
@@ -64,78 +76,24 @@ mvn clean package
 }
 ```
 
-![cherry2.png](img/cherry2.png)
+3. 在模型服务设置中，勾选工具函数调用功能。
+4. 在对话框中勾选开启该 MCP 服务。
+5. 现在你可以直接询问：“帮我搜索一下 Java 集合的面试题”或“在 JavaGuide 中找找关于 Redis 的文章”。
 
-3) 在设置-模型服务里选择一个模型，输入API密钥，选择模型设置，勾选下工具函数调用功能。
-   ![cherry3.png](img/cherry3.png)
-4) 在输入框下面勾选开启MCP服务。
-   ![cherry4.png](img/cherry4.png)
-5) 配置完成，然后查询下面试题目
-   ![cherry5.png](img/cherry5.png)
+## 代码调用示例
 
-#### 代码调用
+### 1. 引入依赖
 
-1) 引入依赖
-
-``` java
-        <dependency>
-            <groupId>com.alibaba.cloud.ai</groupId>
-            <artifactId>spring-ai-alibaba-starter</artifactId>
-            <version>1.0.0-M6.1</version>
-        </dependency>
-    <dependency>
-      <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-mcp-client-spring-boot-starter</artifactId>
-      <version>1.0.0-M6</version>
-    </dependency>
+``` xml
+<dependency>
+    <groupId>org.springframework.ai</groupId>
+    <artifactId>spring-ai-mcp-client-spring-boot-starter</artifactId>
+    <version>1.0.0-M6</version>
+</dependency>
 ```
 
-2) 配置MCP服务器
-   需要在application.yml中配置MCP服务器的一些参数：
+### 2. 初始化 ChatClient
 
-``` yaml
-spring:
-  ai:
-    mcp:
-      client:
-        stdio:
-          # 指定MCP服务器配置文件
-          servers-configuration: classpath:/mcp-servers-config.json
-  mandatory-file-encoding: UTF-8
-```
-
-其中mcp-servers-config.json的配置如下：
-
-``` json
-{
-  "mcpServers": {
-    "mianshiyaServer": {
-      "command": "java",
-      "args": [
-        "-Dspring.ai.mcp.server.stdio=true",
-        "-Dspring.main.web-application-type=none",
-        "-Dlogging.pattern.console=",
-        "-jar",
-        "/Users/gulihua/Documents/mcp-server/target/mcp-server-0.0.1-SNAPSHOT.jar"
-      ],
-      "env": {}
-    }
-  }
-}
-```
-客户端我们使用阿里巴巴的通义千问模型，所以引入spring-ai-alibaba-starter依赖，如果你使用的是其他的模型，也可以使用对应的依赖项，比如openAI引入`spring-ai-openai-spring-boot-starter` 这个依赖就行了。
-配置大模型的密钥等信息：
-``` yaml
-spring:
-  ai:
-    dashscope:
-      api-key: ${通义千问的key}
-      chat:
-        options:
-          model: qwen-max
-```
-通义千问的key可以直接去[官网](https://help.aliyun.com/zh/model-studio/developer-reference/get-api-key?spm=a2c4g.11186623.0.0.7399482394LUBH) 去申请，模型我们用的是通义千问-Max。
-3) 初始化聊天客户端
 ``` java
 @Bean
 public ChatClient initChatClient(ChatClient.Builder chatClientBuilder,
@@ -145,17 +103,12 @@ public ChatClient initChatClient(ChatClient.Builder chatClientBuilder,
     .build();
 }
 ```
-4) 接口调用
+
+### 3. 调用
+
 ``` java
-    @PostMapping(value = "/ai/answer/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> generateStreamAsString(@RequestBody AskRequest request) {
-
-        Flux<String> content = chatClient.prompt()
-                .user(request.getContent())
-                .stream()
-                .content();
-        return content
-                .concatWith(Flux.just("[complete]"));
-
-    }
+Flux<String> content = chatClient.prompt()
+        .user("帮我搜索面试鸭里关于 Spring Boot 的题目")
+        .stream()
+        .content();
 ```
